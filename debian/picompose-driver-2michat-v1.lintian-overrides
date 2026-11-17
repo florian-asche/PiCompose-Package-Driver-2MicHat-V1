@@ -1,0 +1,5 @@
+# The downloaded sources are installed unchanged to /usr/src, as the image build did.
+# They contain a prebuilt ALSA plugin of upstream, which the package does not use.
+picompose-driver-2michat-v1: arch-independent-package-contains-binary-or-object [usr/src/seeed-voicecard-*/ac108_plugin/libasound_module_pcm_ac108.so]
+picompose-driver-2michat-v1: unstripped-binary-or-object [usr/src/seeed-voicecard-*/ac108_plugin/libasound_module_pcm_ac108.so]
+picompose-driver-2michat-v1: missing-dependency-on-libc needed by usr/src/seeed-voicecard-*/ac108_plugin/libasound_module_pcm_ac108.so

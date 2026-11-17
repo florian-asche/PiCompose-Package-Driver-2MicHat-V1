@@ -6,10 +6,11 @@ Package `picompose-driver-2michat-v1` for the [PiCompose APT repository](https:/
 
 - **PiCompose and linux-voice-assistant are read only.** Never change anything in the PiCompose repository or in the linux-voice-assistant repository, not locally and not on GitHub. They are references for what the image does and what the voice assistant needs.
 - Nothing is posted to GitHub (pull requests, discussions, comments) and nothing is pushed without the explicit consent of the developer. A human reviews every change, see `.github/AI_POLICY.md`.
-- Documentation, code comments, commit and PR text are in English, whatever language the conversation is in.
+- Documentation, code comments, commit and PR text are in English, whatever language the conversation is in. The one exception is `diff.md`, which is in German on the developer's request.
+- **`diff.md` documents every deviation from how the PiCompose stage did it.** Keep it up to date: when a change creates, changes or removes a deviation (a file that differs, something that is not in the package, something done another way, an added dependency), update `diff.md` in the same change, and compare against the current `main` of PiCompose.
 - **Open points live in `todo.md`.** Read it before you start. When the developer postpones something ("we do that later") or you find something you cannot settle in this change, add an entry there, and remove the entry in the change that settles it.
 - Do not edit `debian/changelog`. The workflows write it: every pull request needs exactly one of the labels `major`, `minor` and `patch` (tick one box under "Version bump" in the pull request description), and the version follows from it when the pull request is merged.
-- The packages never download anything while they are built or installed. Third-party sources are kept in the repository with their license and noted in `debian/copyright` and the README.
+- The packages never download anything while they are installed. Where the PiCompose stage downloaded sources while it built the image, the package build downloads the same (see `diff.md` and `debian/rules`), and no third-party sources are stored in this repository.
 - Maintainer scripts must be idempotent, run without prompts, and not fail when the hardware is missing. Units are installed to `/usr/lib/systemd/system` and enabled with `dh_installsystemd`, without `systemctl` calls. Defaults for user-owned locations are shipped below `/usr/share` and copied by `postinst` only if missing.
 - Hardware behavior (audio, boot configuration, kernel modules, I2C) cannot be tested here. Say that it was not tested on hardware, never claim it was.
 
@@ -35,7 +36,7 @@ The package has to work on the Raspberry Pi OS that the PiCompose images are bui
    - The architectures: the images are built for arm64, check whether armhf is still needed.
    - Defaults of the base system that the package relies on: the user `pi` with the UID 1000, systemd, PipeWire and WirePlumber, `cron`.
    Specific to this package:
-   - The kernel version of the release. The module sources in `src/seeed-voicecard` are one branch of HinTak/seeed-voicecard (today `v6.12`) and have to match the kernel of Raspberry Pi OS. Check that the module still builds against that kernel.
+   - The kernel version of the release. `debian/rules` downloads one branch of HinTak/seeed-voicecard (`SEEED_BRANCH`, today `v6.12`), which has to match the kernel of Raspberry Pi OS. Check that the module still builds against that kernel.
    - The names of the kernel header packages (`linux-headers-rpi-v8`, and `linux-headers-rpi-2712` for the Raspberry Pi 5) and which of them the images need.
    - The boot configuration: `/boot/firmware/config.txt`, `usercfg.txt` and the overlay directory `/boot/firmware/overlays`.
    - PipeWire and WirePlumber, which the detection service and the volume service use (`pw-cli`, `wpctl`).

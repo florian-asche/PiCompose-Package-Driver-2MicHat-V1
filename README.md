@@ -2,12 +2,14 @@
 
 Package `picompose-driver-2michat-v1` for the [PiCompose APT repository](https://github.com/florian-asche/PiCompose-Repository). It is the driver for the Seeed [ReSpeaker 2-Mics Pi HAT](https://wiki.seeedstudio.com/ReSpeaker_2_Mics_Pi_HAT/) (version 1, WM8960 codec), and also for the 4-Mics and 6-Mics HATs, which the same service detects. Version 2 of the 2-Mics HAT has another codec and is the package picompose-driver-2michat-v2. It is the stage `02-stage-audiodriver-2michat-v1` of the [PiCompose](https://github.com/florian-asche/PiCompose) image as a package.
 
+What differs from how the stage does it is documented in [diff.md](diff.md) (in German).
+
 ## Contents
 
 | Part | Files |
 | --- | --- |
-| Kernel modules | The source is in `/usr/src/seeed-voicecard-0.3`. DKMS builds `snd-soc-wm8960`, `snd-soc-ac108` and `snd-soc-seeed-voicecard` for every installed kernel, and again for new kernels. `/etc/modules-load.d/picompose-seeed-voicecard.conf` loads them at boot. |
-| Device tree overlays | `/boot/firmware/overlays/seeed-2mic-voicecard.dtbo`, `seeed-4mic-voicecard.dtbo`, `seeed-8mic-voicecard.dtbo`, built from the `.dts` files during the package build |
+| Kernel modules | The downloaded source is in `/usr/src/seeed-voicecard-0.3`. DKMS builds `snd-soc-wm8960`, `snd-soc-ac108` and `snd-soc-seeed-voicecard` for every installed kernel, and again for new kernels. `/etc/modules-load.d/picompose-seeed-voicecard.conf` loads them at boot. |
+| Device tree overlays | `/boot/firmware/overlays/seeed-2mic-voicecard.dtbo`, `seeed-4mic-voicecard.dtbo`, `seeed-8mic-voicecard.dtbo`, the prebuilt files of the downloaded source |
 | Card configuration | `/etc/voicecard/` with the `asound_*.conf` and `*_asound.state` files of the HATs |
 | Detection service | `/usr/bin/seeed-voicecard-v2`, `seeed-voicecard.service` (enabled, not started at install) |
 | Boot configuration | The `postinst` enables `dtparam=i2c_arm=on`, `dtparam=i2s=on`, `dtparam=spi=on` and adds `dtoverlay=i2s-mmap`. The `postrm` removes `i2s-mmap` and the overlay lines again. Both are safe to run more than once. |
@@ -20,11 +22,9 @@ Package `picompose-driver-2michat-v1` for the [PiCompose APT repository](https:/
 
 ## Kernel version and DKMS
 
-The module sources are the branch `v6.12` of [HinTak/seeed-voicecard](https://github.com/HinTak/seeed-voicecard) (commit `f04dab275d61cbc38af1f4d0e9c188043760ef84`), which matches the kernel 6.12 of Raspberry Pi OS Trixie. The image downloads the branch for the kernel version it finds while it is built. The package carries one branch, so it follows one kernel version. If Raspberry Pi OS moves to another kernel, the sources in `src/seeed-voicecard` have to be replaced with the matching branch.
+The package build (`debian/rules`) downloads the branch `v6.12` of [HinTak/seeed-voicecard](https://github.com/HinTak/seeed-voicecard) as a tarball and installs it unchanged: the whole source tree to `/usr/src/seeed-voicecard-<version>`, the prebuilt overlays to `/boot/firmware/overlays` and the card configuration to `/etc/voicecard`. No source is stored in this repository, building needs network access, and the branch is not pinned to a commit. The branch matches the kernel 6.12 of Raspberry Pi OS Trixie. The image downloads the branch for each kernel version it finds while it is built. The package follows one branch: if Raspberry Pi OS moves to another kernel, change `SEEED_BRANCH` in `debian/rules`.
 
 The package depends on `linux-headers-rpi-v8`, as the image does, which covers the 64-bit kernel of the Raspberry Pi 3, 4 and Zero 2. DKMS builds the modules in the `postinst`, so the headers of the running kernel have to be installed.
-
-Only what the build needs is kept from the upstream repository: the sources of the three modules, the Makefile, `dkms.conf`, the patches, the overlays and the card configuration. The prebuilt overlays and the `ac108` plugin binary of upstream are left out.
 
 ## One driver per system
 

@@ -1,18 +1,32 @@
 #!/usr/bin/make -f
 
+# The sources are downloaded while the package is built, like the image build did.
+# The branch has to match the kernel of the image. See diff.md.
+SEEED_BRANCH = v6.12
+SEEED_URL = https://github.com/HinTak/seeed-voicecard/archive/refs/heads/$(SEEED_BRANCH).tar.gz
+SEEED_DIR = build/seeed-voicecard
+
 %:
 	dh $@ --with dkms
 
-override_dh_auto_build:
-	for hat in 2mic 4mic 8mic; do \
-	    dtc -@ -b 0 -Wno-unit_address_vs_reg -I dts -O dtb -o seeed-$$hat-voicecard.dtbo src/seeed-voicecard/seeed-$$hat-voicecard-overlay.dts; \
-	done
+override_dh_auto_configure:
+	rm -rf build
+	mkdir -p $(SEEED_DIR)
+	curl -fsSL -o build/seeed-voicecard.tar.gz $(SEEED_URL)
+	tar -xf build/seeed-voicecard.tar.gz -C $(SEEED_DIR) --strip-components=1
 
 override_dh_auto_clean:
-	rm -f seeed-*-voicecard.dtbo
+	rm -rf build
+
+# dh_dkms only handles dkms.conf, the module sources go to /usr/src/<module>-<version> here,
+# the whole directory like the image build did.
+override_dh_auto_install:
+	version="$$(sed -n 's/^PACKAGE_VERSION="\(.*\)"/\1/p' $(SEEED_DIR)/dkms.conf)"; \
+	mkdir -p debian/picompose-driver-2michat-v1/usr/src/seeed-voicecard-$$version; \
+	cp -a $(SEEED_DIR)/. debian/picompose-driver-2michat-v1/usr/src/seeed-voicecard-$$version/
 
 override_dh_dkms:
-	dh_dkms -V 0.3
+	dh_dkms -V "$$(sed -n 's/^PACKAGE_VERSION="\(.*\)"/\1/p' $(SEEED_DIR)/dkms.conf)"
 
 override_dh_installsystemd:
 	dh_installsystemd --no-start --no-restart-after-upgrade seeed-voicecard.service
