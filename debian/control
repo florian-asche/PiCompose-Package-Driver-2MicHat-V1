@@ -1,0 +1,33 @@
+Source: picompose-driver-2michat-v1
+Section: sound
+Priority: optional
+Maintainer: Florian Asche <github@florian-asche.de>
+Build-Depends: debhelper-compat (= 13),
+ dh-dkms,
+ device-tree-compiler
+Standards-Version: 4.7.0
+Homepage: https://github.com/florian-asche/PiCompose-Package-Driver-2MicHat-V1
+Rules-Requires-Root: no
+
+Package: picompose-driver-2michat-v1
+Architecture: all
+Depends: ${misc:Depends},
+ wireplumber,
+ alsa-utils,
+ dkms,
+ linux-headers-rpi-v8,
+ i2c-tools,
+ libasound2-plugins,
+ pipewire-bin,
+ kmod
+Provides: picompose-audio-driver
+Conflicts: picompose-audio-driver
+Replaces: picompose-audio-driver
+Description: PiCompose driver for the ReSpeaker 2-Mics and 4-Mics Pi HAT
+ Kernel module (built with DKMS), device tree overlays and audio setup for
+ the Seeed ReSpeaker 2-Mics, 4-Mics and 6-Mics Pi HATs (WM8960 and AC108
+ codecs). A service detects the HAT on the I2C bus at the first start,
+ configures it and reboots the system once.
+ .
+ The package provides picompose-audio-driver, so only one audio driver package
+ can be installed.

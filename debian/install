@@ -1,0 +1,5 @@
+files/usr/* usr/
+files/etc/* etc/
+seeed-2mic-voicecard.dtbo boot/firmware/overlays/
+seeed-4mic-voicecard.dtbo boot/firmware/overlays/
+seeed-8mic-voicecard.dtbo boot/firmware/overlays/
