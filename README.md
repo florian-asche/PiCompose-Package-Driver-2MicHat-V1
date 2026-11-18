@@ -1,5 +1,7 @@
 # PiCompose-Package-Driver-2MicHat-V1
 
+[![Version](https://github.com/florian-asche/PiCompose-Package-Driver-2MicHat-V1/actions/workflows/version.yml/badge.svg?branch=main)](https://github.com/florian-asche/PiCompose-Package-Driver-2MicHat-V1/actions/workflows/version.yml) [![GitHub Release Version](https://img.shields.io/github/v/release/florian-asche/PiCompose-Package-Driver-2MicHat-V1?label=version)](https://github.com/florian-asche/PiCompose-Package-Driver-2MicHat-V1/releases) [![GitHub License](https://img.shields.io/github/license/florian-asche/PiCompose-Package-Driver-2MicHat-V1)](https://github.com/florian-asche/PiCompose-Package-Driver-2MicHat-V1/blob/main/LICENSE)
+
 Package `picompose-driver-2michat-v1` for the [PiCompose APT repository](https://github.com/florian-asche/PiCompose-Repository). It is the driver for the Seeed [ReSpeaker 2-Mics Pi HAT](https://wiki.seeedstudio.com/ReSpeaker_2_Mics_Pi_HAT/) (version 1, WM8960 codec), and also for the 4-Mics and 6-Mics HATs, which the same service detects. Version 2 of the 2-Mics HAT has another codec and is the package picompose-driver-2michat-v2. It is the stage `02-stage-audiodriver-2michat-v1` of the [PiCompose](https://github.com/florian-asche/PiCompose) image as a package.
 
 What differs from how the stage does it is documented in [diff.md](diff.md) (in German).
