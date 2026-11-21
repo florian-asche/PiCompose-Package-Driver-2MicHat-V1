@@ -24,7 +24,7 @@ The 4-Mics and 6-Mics HATs have an AC108 codec, which the kernel does not have, 
 
 ## Source of the overlay
 
-The package build (`debian/rules`) clones the repository [seeed-linux-dtoverlays](https://github.com/Seeed-Studio/seeed-linux-dtoverlays) and runs `make overlays/rpi/respeaker-2mic-v1_0-overlay.dtbo`, so building needs network access, and it uses the state of the default branch at that time. No source is stored in this repository. The overlay is copied to `/boot/firmware/overlays` and not installed there by dpkg: that directory is on a FAT partition without hard links, where dpkg cannot replace a file during an upgrade.
+The package build (`debian/rules`) fetches one commit of the repository [seeed-linux-dtoverlays](https://github.com/Seeed-Studio/seeed-linux-dtoverlays) (`SEEED_COMMIT` in `debian/rules`) and runs `make overlays/rpi/respeaker-2mic-v1_0-overlay.dtbo`, so building needs network access, and the same commit gives the same overlay. To follow upstream, set `SEEED_COMMIT` to a newer commit. No source is stored in this repository. The overlay is copied to `/boot/firmware/overlays` and not installed there by dpkg: that directory is on a FAT partition without hard links, where dpkg cannot replace a file during an upgrade.
 
 ## One driver per system
 
