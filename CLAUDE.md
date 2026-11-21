@@ -1,6 +1,6 @@
 # AI working guide for PiCompose-Package-Driver-2MicHat-V1
 
-Package `picompose-driver-2michat-v1` for the [PiCompose APT repository](https://github.com/florian-asche/PiCompose-Repository). It replaces the stage `02-stage-audiodriver-2michat-v1` of the [PiCompose](https://github.com/florian-asche/PiCompose) image, which built the Seeed DKMS driver. The package uses the overlay `wm8960-soundcard` of the Raspberry Pi kernel instead and supports the 2-Mics HAT only. Read `README.md` for what the package contains. When this file and the code disagree, the code wins, fix this file in the same change.
+Package `picompose-driver-2michat-v1` for the [PiCompose APT repository](https://github.com/florian-asche/PiCompose-Repository). It replaces the stage `02-stage-audiodriver-2michat-v1` of the [PiCompose](https://github.com/florian-asche/PiCompose) image, which built the Seeed DKMS driver. The package builds the overlay `respeaker-2mic-v1_0` of Seeed and relies on the driver of the Raspberry Pi kernel instead, and supports the 2-Mics HAT only. Read `README.md` for what the package contains. When this file and the code disagree, the code wins, fix this file in the same change.
 
 ## Rules
 
@@ -9,7 +9,7 @@ Package `picompose-driver-2michat-v1` for the [PiCompose APT repository](https:/
 - Documentation, code comments, commit and PR text are in English, whatever language the conversation is in.
 - **Open points live in `todo.md`.** Read it before you start. When the developer postpones something ("we do that later") or you find something you cannot settle in this change, add an entry there, and remove the entry in the change that settles it.
 - Do not edit `debian/changelog`. The workflows write it: every pull request needs exactly one of the labels `major`, `minor` and `patch` (tick one box under "Version bump" in the pull request description), and the version follows from it when the pull request is merged.
-- The packages never download anything while they are installed. No third-party sources are stored in this repository.
+- The packages never download anything while they are installed. The package build downloads the overlay source (see `debian/rules`), and no third-party sources are stored in this repository.
 - Maintainer scripts must be idempotent, run without prompts, and not fail when the hardware is missing. Units, if the package ships any, are installed to `/usr/lib/systemd/system` and enabled with `dh_installsystemd`, without `systemctl` calls. Defaults for user-owned locations are shipped below `/usr/share` and copied by `postinst` only if missing.
 - Hardware behavior (audio, boot configuration, kernel modules, I2C) cannot be tested here. Say that it was not tested on hardware, never claim it was.
 
@@ -35,7 +35,7 @@ The package has to work on the Raspberry Pi OS that the PiCompose images are bui
    - The architectures: the images are built for arm64, check whether armhf is still needed.
    - Defaults of the base system that the package relies on: the user `pi` with the UID 1000, systemd, PipeWire, `cron`.
    Specific to this package:
-   - The kernel of the release still has the driver `snd-soc-wm8960`, and the firmware of the release still ships the overlay `wm8960-soundcard` with the parameter `alsaname` (`dtoverlay -h wm8960-soundcard`, or the `README` in the overlay directory). The package does not build or ship either of them.
-   - The boot configuration: `/boot/firmware/config.txt`, `usercfg.txt`. The package ships no files below `/boot` (`/boot/firmware` is a FAT partition, dpkg cannot replace files there).
-   - The card name: the overlay line sets `alsaname=seeed-2mic-voicecard`, so the card keeps the ALSA id `seeed2micvoicec` that PiCompose and LVA configuration refer to.
+   - The kernel of the release still has the driver `snd-soc-wm8960`, and the overlay that `debian/rules` builds from the repository of Seeed still fits it (nodes `i2s_clk_consumer`, `sound`, `i2c1`, `vdd_3v3_reg`) and still compiles with the `dtc` of the release.
+   - The boot configuration: `/boot/firmware/config.txt`, `usercfg.txt` and the overlay directory `/boot/firmware/overlays`. `/boot/firmware` is a FAT partition: dpkg cannot replace files there (no hard links), so the package must not install files below `/boot`, the `postinst` copies them.
+   - The card name: the overlay names the card `seeed2micvoicec`, which PiCompose and LVA configuration refer to.
 3. **Write down the verdict**: which release, kernel and image definition you looked at, what you checked and how (commands), what you could not check (hardware), and what has to change if the base moves, for example to a new Debian release. If a change makes the package fit only a newer or only an older base than the images use, say so and ask the developer before going on.

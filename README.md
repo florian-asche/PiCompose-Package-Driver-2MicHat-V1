@@ -4,19 +4,26 @@
 
 Package `picompose-driver-2michat-v1` for the [PiCompose APT repository](https://github.com/florian-asche/PiCompose-Repository). It is the driver for the Seeed [ReSpeaker 2-Mics Pi HAT](https://wiki.seeedstudio.com/ReSpeaker_2_Mics_Pi_HAT/) (version 1, WM8960 codec, I2C address 0x1a). Version 2 of the HAT has another codec and is the package `picompose-driver-2michat-v2`. The 4-Mics and 6-Mics HATs have an AC108 codec, which the kernel does not have, so the package does not support them.
 
-The PiCompose image built the DKMS driver of [HinTak/seeed-voicecard](https://github.com/HinTak/seeed-voicecard) for this HAT. The package does not: the kernel of Raspberry Pi OS has the driver for the codec (`snd-soc-wm8960`) and the overlay `wm8960-soundcard`, which connects it to the I2S pins of the Raspberry Pi. So no kernel module is built, nothing is downloaded and the package is small.
+The PiCompose image built the DKMS driver of [HinTak/seeed-voicecard](https://github.com/HinTak/seeed-voicecard) for this HAT. The package does not: the kernel of Raspberry Pi OS has the driver for the codec (`snd-soc-wm8960`), so only the overlay that connects it to the I2S pins of the Raspberry Pi is needed. No kernel module is built.
 
 ## Requirements
 
-The package is for Raspberry Pi OS only. It changes the boot configuration of the Raspberry Pi (`config.txt`, `usercfg.txt`), which only has an effect on the Raspberry Pi firmware. The package does not check this when it is installed, so on any other system it installs but does nothing.
+The package is for Raspberry Pi OS only. It copies the overlay to `/boot/firmware/overlays` and changes the boot configuration of the Raspberry Pi (`config.txt`, `usercfg.txt`), which only has an effect on the Raspberry Pi firmware. The package does not check this when it is installed, so on any other system it installs but does nothing.
 
 ## Contents
 
-| Part | What it does |
+| Part | Files |
 | --- | --- |
-| Boot configuration | The `postinst` enables `dtparam=i2c_arm=on` and `dtparam=spi=on` (SPI is for the APA102 LEDs of the HAT, not for audio) and adds `dtoverlay=wm8960-soundcard,alsaname=seeed-2mic-voicecard` to the boot configuration (`config.txt`, `usercfg.txt` if it exists). It removes the `dtoverlay=seeed-*-voicecard` lines that earlier versions of the package added, because they use the same nodes. The `postrm` removes the overlay line again. Both are safe to run more than once. |
+| Device tree overlay | `/usr/lib/picompose-driver-2michat-v1/respeaker-2mic-v1_0.dtbo`, built while the package is built, see below. The `postinst` copies it to `/boot/firmware/overlays/respeaker-2mic-v1_0.dtbo` (or `/boot/overlays` if that is where the overlays are), the `postrm` removes the copy. |
+| Boot configuration | The `postinst` enables `dtparam=i2c_arm=on` and `dtparam=spi=on` (SPI is for the APA102 LEDs of the HAT, not for audio) and adds `dtoverlay=respeaker-2mic-v1_0` to the boot configuration (`config.txt`, `usercfg.txt` if it exists). It removes the overlay lines that earlier versions of the package added (`dtoverlay=wm8960-soundcard,alsaname=seeed-2mic-voicecard` and `dtoverlay=seeed-*-voicecard`), because they use the same nodes. The `postrm` removes the overlay line again. Both are safe to run more than once. |
 
-The package ships no files. The overlay is part of the firmware of Raspberry Pi OS. `alsaname=seeed-2mic-voicecard` is the name of the card in the overlay of Seeed, so after a reboot the card appears as `seeed2micvoicec` as before. The package does not set the volume of the card and does not load an ALSA state. It was not tested on hardware.
+The overlay names the card `seeed2micvoicec`. It sets the clock of the codec to 24 MHz and makes the codec the master of the I2S clocks, which the overlay `wm8960-soundcard` of the kernel (made for the Waveshare HAT) does not. The package does not set the volume of the card and does not load an ALSA state. The change takes effect after a reboot. It was not tested on hardware.
+
+The 4-Mics and 6-Mics HATs have an AC108 codec, which the kernel does not have, so the package does not support them.
+
+## Source of the overlay
+
+The package build (`debian/rules`) clones the repository [seeed-linux-dtoverlays](https://github.com/Seeed-Studio/seeed-linux-dtoverlays) and runs `make overlays/rpi/respeaker-2mic-v1_0-overlay.dtbo`, so building needs network access, and it uses the state of the default branch at that time. No source is stored in this repository. The overlay is copied to `/boot/firmware/overlays` and not installed there by dpkg: that directory is on a FAT partition without hard links, where dpkg cannot replace a file during an upgrade.
 
 ## One driver per system
 
