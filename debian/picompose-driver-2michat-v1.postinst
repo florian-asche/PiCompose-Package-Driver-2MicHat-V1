@@ -1,6 +1,9 @@
 #!/bin/sh
 set -e
 
+# The overlay of the kernel, with the card name of the Seeed overlay, so the card keeps its ALSA id seeed2micvoicec
+OVERLAY_LINE="dtoverlay=wm8960-soundcard,alsaname=seeed-2mic-voicecard"
+
 # Boot configuration file of the Raspberry Pi
 boot_config() {
     config=/boot/config.txt
@@ -32,11 +35,14 @@ remove_boot_line() {
 
 case "$1" in
     configure)
-        # The service of the package adds the overlay of the detected HAT
+        # Earlier versions of the package loaded the overlays of Seeed, which use the same I2S and codec nodes
+        for overlay in seeed-2mic-voicecard seeed-4mic-voicecard seeed-6mic-voicecard; do
+            remove_boot_line "dtoverlay=${overlay}"
+        done
+
         enable_boot_param dtparam=i2c_arm
-        enable_boot_param dtparam=i2s
         enable_boot_param dtparam=spi
-        add_boot_line dtoverlay=i2s-mmap
+        add_boot_line "$OVERLAY_LINE"
         ;;
 esac
 

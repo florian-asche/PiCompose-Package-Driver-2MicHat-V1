@@ -1,5 +1,0 @@
-files/usr/* usr/
-files/etc/* etc/
-build/seeed-voicecard/seeed-*-voicecard.dtbo boot/firmware/overlays/
-build/seeed-voicecard/asound_*.conf etc/voicecard/
-build/seeed-voicecard/*.state etc/voicecard/

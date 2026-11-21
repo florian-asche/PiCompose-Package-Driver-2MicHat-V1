@@ -2,16 +2,12 @@
 
 Open points and work that was postponed. Remove an entry in the change that settles it.
 
-1. **Test the DKMS build against the Raspberry Pi kernel:** The three modules compile against the Debian 6.12 headers (amd64). The link check (modpost) fails there on `simple_util_clean_reference`, which the Debian amd64 kernel does not export. Build the modules against the real kernel of Raspberry Pi OS Trixie (`linux-headers-rpi-v8`, arm64), in a Raspberry Pi OS container or on a Raspberry Pi.
+1. **Test on hardware:** Install on Raspberry Pi OS Trixie with the HAT, reboot and check that the card `seeed2micvoicec` appears, plays and records. The overlay `wm8960-soundcard` is made for the Waveshare WM8960 HAT. It differs from the overlay of Seeed (it targets `i2s_clk_producer`, the clock is set on the codec node, there is no `master` parameter), so check the clocking of the HAT (the Seeed HAT has its own oscillator). Nothing was tested on a Raspberry Pi with a HAT.
 
-2. **Follow kernel versions:** The package build downloads one branch (`SEEED_BRANCH` in `debian/rules`, today `v6.12`). The image downloads the branch that matches each kernel it finds. Decide how the package follows new kernels.
+2. **Check the volume of the WM8960 card:** The package does not set the volume, and the ALSA state of Seeed is deliberately not used. Check on hardware whether the card has a usable volume after a boot, and whether the sink volume reaches the codec. If not, add a profile set like the one of picompose-driver-2michat-v2 (udev property `ACP_PROFILE_SET`) with the real mixer elements of the WM8960 (`Headphone`, `Speaker`, `Playback`).
 
-3. **Pin the download:** The tarball of the branch is downloaded without a fixed commit or checksum, as in the image. A pinned commit or a checksum would make builds repeatable. Decide whether that is wanted.
+3. **Check that the overlay ships in the images:** Check with `dtoverlay -h wm8960-soundcard` on the Raspberry Pi OS Trixie of the images that the overlay exists and has `alsaname`. It was checked in the source of the kernel branch `rpi-6.12.y`, not on an installed system.
 
-4. **Raspberry Pi 5:** Only `linux-headers-rpi-v8` is a dependency, as in the image. Check whether `linux-headers-rpi-2712` is needed for the Raspberry Pi 5.
+4. **Package for the 4-Mics and 6-Mics HATs:** They need the AC108 driver, which is not in the kernel, and are not supported by this package. A separate repository with its own package (DKMS driver of HinTak/seeed-voicecard) is planned.
 
-5. **Review the license information:** The package installs the upstream tarball unchanged (kernel module sources, prebuilt overlays and a prebuilt ALSA plugin). `debian/copyright` points to the upstream files instead of naming a license, because the sources are downloaded. Check what upstream states (the kernel modules say GPL version 2, the repository ships the GPL-3 text, the overlays and the Makefile say MIT) and whether `debian/copyright` should say it.
-
-6. **Review the service that reboots the system:** `seeed-voicecard.service` reboots the system once after it detected the HAT. That is the behavior of the image and is kept. Check whether it is acceptable for a package that is installed on a running system.
-
-7. **Test on hardware:** Nothing was tested on a Raspberry Pi with a HAT.
+5. **Test the upgrade:** On a system with the earlier version, check that the old `dtoverlay=seeed-*-voicecard` and `dtoverlay=i2s-mmap` lines and the DKMS modules do not disturb the new overlay. The package removes the Seeed overlay lines, but leaves `dtoverlay=i2s-mmap` and `dtparam=i2s=on`.
