@@ -4,6 +4,9 @@ Source: https://github.com/florian-asche/PiCompose-Package-Driver-2MicHat-V1
 
 Files: *
 Copyright: 2025-2026 Florian Asche
+Comment: The package contains a device tree overlay that is built from
+ https://github.com/Seeed-Studio/seeed-linux-dtoverlays while the package is built.
+ The overlay states the MIT License. The source is not part of this repository.
 License: MIT
  Permission is hereby granted, free of charge, to any person obtaining a
  copy of this software and associated documentation files (the "Software"),
