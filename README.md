@@ -15,8 +15,9 @@ The package is for Raspberry Pi OS only. It changes the boot configuration of th
 | Part | What it does |
 | --- | --- |
 | Boot configuration | The `postinst` enables `dtparam=i2c_arm=on` and `dtparam=spi=on` (SPI is for the APA102 LEDs of the HAT, not for audio) and adds `dtoverlay=wm8960-soundcard,alsaname=seeed-2mic-voicecard` to the boot configuration (`config.txt`, `usercfg.txt` if it exists). It removes the `dtoverlay=seeed-*-voicecard` lines that earlier versions of the package added, because they use the same nodes. The `postrm` removes the overlay line again. Both are safe to run more than once. |
+| Mixer routing | `/usr/bin/picompose-2michat-v1-mixer`, `picompose-2michat-v1-mixer.service` (enabled, not started at install). After every boot the service waits for the card `seeed2micvoicec` (up to 30 s) and switches on `Left/Right Output Mixer PCM Playback Switch`, `Left/Right Input Mixer Boost Switch` and sets `Left Input Boost Mixer LINPUT1` and `Right Input Boost Mixer RINPUT1` to 3. It runs after `alsa-restore.service`, so the stored state cannot switch it off again. It does not touch the volumes and does not exit with an error when the card is missing. |
 
-The package ships no files. The overlay is part of the firmware of Raspberry Pi OS. `alsaname=seeed-2mic-voicecard` is the name of the card in the overlay of Seeed, so after a reboot the card appears as `seeed2micvoicec` as before. The package does not set the volume of the card and does not load an ALSA state. It was not tested on hardware.
+The overlay is part of the firmware of Raspberry Pi OS and is not shipped by the package. `alsaname=seeed-2mic-voicecard` is the name of the card in the overlay of Seeed, so after a reboot the card appears as `seeed2micvoicec` as before. The WM8960 starts with the DAC not routed to the outputs and the microphones not routed to the ADC, so without the mixer service the card is silent. The package does not set the volumes and does not load an ALSA state. It was not tested on hardware.
 
 ## One driver per system
 

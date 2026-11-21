@@ -36,6 +36,7 @@ The package has to work on the Raspberry Pi OS that the PiCompose images are bui
    - Defaults of the base system that the package relies on: the user `pi` with the UID 1000, systemd, PipeWire, `cron`.
    Specific to this package:
    - The kernel of the release still has the driver `snd-soc-wm8960`, and the firmware of the release still ships the overlay `wm8960-soundcard` with the parameter `alsaname` (`dtoverlay -h wm8960-soundcard`, or the `README` in the overlay directory). The package does not build or ship either of them.
+   - The mixer service: the control names of the WM8960 driver (`Left Output Mixer PCM Playback Switch` and the others in `files/usr/bin/picompose-2michat-v1-mixer`) still exist in the kernel (`amixer -c seeed2micvoicec controls`), and `alsa-restore.service` is still the unit that restores the ALSA state.
    - The boot configuration: `/boot/firmware/config.txt`, `usercfg.txt`. The package ships no files below `/boot` (`/boot/firmware` is a FAT partition, dpkg cannot replace files there).
    - The card name: the overlay line sets `alsaname=seeed-2mic-voicecard`, so the card keeps the ALSA id `seeed2micvoicec` that PiCompose and LVA configuration refer to.
 3. **Write down the verdict**: which release, kernel and image definition you looked at, what you checked and how (commands), what you could not check (hardware), and what has to change if the base moves, for example to a new Debian release. If a change makes the package fit only a newer or only an older base than the images use, say so and ask the developer before going on.
