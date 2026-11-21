@@ -1,3 +1,9 @@
+picompose-driver-2michat-v1 (1.0.0) trixie; urgency=medium
+
+  * Use the wm8960-soundcard overlay of the kernel instead of the Seeed DKMS driver (#3)
+
+ -- Florian Asche <github@florian-asche.de>  Sat, 21 Nov 2026 02:44:19 +0000
+
 picompose-driver-2michat-v1 (0.0.2) trixie; urgency=medium
 
   * Check for updates of the GitHub Actions daily (#2)
