@@ -1,0 +1,70 @@
+state.seeed2micvoicec {
+	control.51 {
+		iface MIXER
+		name 'Left Output Mixer PCM Playback Switch'
+		value true
+		comment {
+			access 'read write'
+			type BOOLEAN
+			count 1
+		}
+	}
+	control.54 {
+		iface MIXER
+		name 'Right Output Mixer PCM Playback Switch'
+		value true
+		comment {
+			access 'read write'
+			type BOOLEAN
+			count 1
+		}
+	}
+	control.49 {
+		iface MIXER
+		name 'Left Input Mixer Boost Switch'
+		value true
+		comment {
+			access 'read write'
+			type BOOLEAN
+			count 1
+		}
+	}
+	control.50 {
+		iface MIXER
+		name 'Right Input Mixer Boost Switch'
+		value true
+		comment {
+			access 'read write'
+			type BOOLEAN
+			count 1
+		}
+	}
+	control.9 {
+		iface MIXER
+		name 'Left Input Boost Mixer LINPUT1 Volume'
+		value 3
+		comment {
+			access 'read write'
+			type INTEGER
+			count 1
+			range '0 - 3'
+			dbmin 0
+			dbmax 2900
+			dbvalue.0 2900
+		}
+	}
+	control.8 {
+		iface MIXER
+		name 'Right Input Boost Mixer RINPUT1 Volume'
+		value 3
+		comment {
+			access 'read write'
+			type INTEGER
+			count 1
+			range '0 - 3'
+			dbmin 0
+			dbmax 2900
+			dbvalue.0 2900
+		}
+	}
+}

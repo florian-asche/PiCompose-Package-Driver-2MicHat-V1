@@ -4,6 +4,12 @@ set -e
 # The overlay of the kernel, with the card name of the Seeed overlay, so the card keeps its ALSA id seeed2micvoicec
 OVERLAY_LINE="dtoverlay=wm8960-soundcard,alsaname=seeed-2mic-voicecard"
 
+# Mixer routing of the codec, see apply_mixer_state
+CARD=seeed2micvoicec
+STATE=/usr/share/picompose-driver-2michat-v1/seeed2micvoicec.state
+MARKER=/var/lib/picompose-driver-2michat-v1/mixer-state-applied
+ALSA_STATE=/var/lib/alsa/asound.state
+
 # Boot configuration file of the Raspberry Pi
 boot_config() {
     config=/boot/config.txt
@@ -33,6 +39,23 @@ remove_boot_line() {
     sed -i "\\#^$1\$#d" "$config"
 }
 
+# The WM8960 starts with the DAC and the microphones not routed, so the card is silent. This puts the
+# routing into the stored ALSA state, once. alsactl exits with 99 for a partial state, so its result is
+# not checked: a card that is there gets the values now and alsactl stores them, a card that is not there
+# yet (overlay not loaded before the first reboot) gets the section added to the stored state.
+apply_mixer_state() {
+    [ -e "$MARKER" ] && return 0
+    if [ -e "/proc/asound/$CARD" ]; then
+        alsactl -f "$STATE" restore "$CARD" >/dev/null 2>&1 || true
+        alsactl store "$CARD" >/dev/null 2>&1 || true
+    elif ! grep -qs "^state\\.$CARD " "$ALSA_STATE"; then
+        mkdir -p "$(dirname "$ALSA_STATE")"
+        cat "$STATE" >> "$ALSA_STATE"
+    fi
+    mkdir -p "$(dirname "$MARKER")"
+    touch "$MARKER"
+}
+
 case "$1" in
     configure)
         # Earlier versions of the package loaded the overlays of Seeed, which use the same I2S and codec nodes
@@ -43,6 +66,8 @@ case "$1" in
         enable_boot_param dtparam=i2c_arm
         enable_boot_param dtparam=spi
         add_boot_line "$OVERLAY_LINE"
+
+        apply_mixer_state
         ;;
 esac
 
