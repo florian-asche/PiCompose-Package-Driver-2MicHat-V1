@@ -1,1 +1,2 @@
+files/usr/* usr/
 build/respeaker-2mic-v1_0.dtbo usr/lib/picompose-driver-2michat-v1/
