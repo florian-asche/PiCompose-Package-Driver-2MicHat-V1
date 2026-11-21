@@ -2,35 +2,25 @@
 
 [![Version](https://github.com/florian-asche/PiCompose-Package-Driver-2MicHat-V1/actions/workflows/version.yml/badge.svg?branch=main)](https://github.com/florian-asche/PiCompose-Package-Driver-2MicHat-V1/actions/workflows/version.yml) [![GitHub Release Version](https://img.shields.io/github/v/release/florian-asche/PiCompose-Package-Driver-2MicHat-V1?label=version)](https://github.com/florian-asche/PiCompose-Package-Driver-2MicHat-V1/releases) [![GitHub License](https://img.shields.io/github/license/florian-asche/PiCompose-Package-Driver-2MicHat-V1)](https://github.com/florian-asche/PiCompose-Package-Driver-2MicHat-V1/blob/main/LICENSE)
 
-Package `picompose-driver-2michat-v1` for the [PiCompose APT repository](https://github.com/florian-asche/PiCompose-Repository). It is the driver for the Seeed [ReSpeaker 2-Mics Pi HAT](https://wiki.seeedstudio.com/ReSpeaker_2_Mics_Pi_HAT/) (version 1, WM8960 codec), and also for the 4-Mics and 6-Mics HATs, which the same service detects. Version 2 of the 2-Mics HAT has another codec and is the package picompose-driver-2michat-v2. It is the stage `02-stage-audiodriver-2michat-v1` of the [PiCompose](https://github.com/florian-asche/PiCompose) image as a package.
+Package `picompose-driver-2michat-v1` for the [PiCompose APT repository](https://github.com/florian-asche/PiCompose-Repository). It is the driver for the Seeed [ReSpeaker 2-Mics Pi HAT](https://wiki.seeedstudio.com/ReSpeaker_2_Mics_Pi_HAT/) (version 1, WM8960 codec, I2C address 0x1a). Version 2 of the HAT has another codec and is the package `picompose-driver-2michat-v2`. The 4-Mics and 6-Mics HATs have an AC108 codec, which the kernel does not have, so the package does not support them.
 
-What differs from how the stage does it is documented in [diff.md](diff.md) (in German).
+The PiCompose image built the DKMS driver of [HinTak/seeed-voicecard](https://github.com/HinTak/seeed-voicecard) for this HAT. The package does not: the kernel of Raspberry Pi OS has the driver for the codec (`snd-soc-wm8960`) and the overlay `wm8960-soundcard`, which connects it to the I2S pins of the Raspberry Pi. So no kernel module is built, nothing is downloaded and the package is small.
+
+## Requirements
+
+The package is for Raspberry Pi OS only. It changes the boot configuration of the Raspberry Pi (`config.txt`, `usercfg.txt`), which only has an effect on the Raspberry Pi firmware. The package does not check this when it is installed, so on any other system it installs but does nothing.
 
 ## Contents
 
-| Part | Files |
+| Part | What it does |
 | --- | --- |
-| Kernel modules | The downloaded source is in `/usr/src/seeed-voicecard-0.3`. DKMS builds `snd-soc-wm8960`, `snd-soc-ac108` and `snd-soc-seeed-voicecard` for every installed kernel, and again for new kernels. `/etc/modules-load.d/picompose-seeed-voicecard.conf` loads them at boot. |
-| Device tree overlays | `/boot/firmware/overlays/seeed-2mic-voicecard.dtbo`, `seeed-4mic-voicecard.dtbo`, `seeed-8mic-voicecard.dtbo`, the prebuilt files of the downloaded source |
-| Card configuration | `/etc/voicecard/` with the `asound_*.conf` and `*_asound.state` files of the HATs |
-| Detection service | `/usr/bin/seeed-voicecard-v2`, `seeed-voicecard.service` (enabled, not started at install) |
-| Boot configuration | The `postinst` enables `dtparam=i2c_arm=on`, `dtparam=i2s=on`, `dtparam=spi=on` and adds `dtoverlay=i2s-mmap`. The `postrm` removes `i2s-mmap` and the overlay lines again. Both are safe to run more than once. |
-| WirePlumber | `/etc/wireplumber/wireplumber.conf.d/51-disable-acp.conf` turns off the ALSA card profile handling (ACP) |
-| Volume setup | `/usr/bin/configure_audio.sh`, `configure_audio.service` (enabled, not started at install) |
+| Boot configuration | The `postinst` enables `dtparam=i2c_arm=on` and `dtparam=spi=on` (SPI is for the APA102 LEDs of the HAT, not for audio) and adds `dtoverlay=wm8960-soundcard,alsaname=seeed-2mic-voicecard` to the boot configuration (`config.txt`, `usercfg.txt` if it exists). It removes the `dtoverlay=seeed-*-voicecard` lines that earlier versions of the package added, because they use the same nodes. The `postrm` removes the overlay line again. Both are safe to run more than once. |
 
-## What the service does, and a reboot
-
-`seeed-voicecard.service` runs once after the first boot (until `/var/lib/seeed-voicecard/success` exists). It waits for PipeWire, looks on the I2C bus which HAT is there, writes the matching `dtoverlay=` line into the boot configuration, replaces `/etc/asound.conf` and the ALSA state with the ones of the HAT, **and reboots the system**. This is the behavior of the PiCompose image and is kept without changes.
-
-## Kernel version and DKMS
-
-The package build (`debian/rules`) downloads the branch `v6.12` of [HinTak/seeed-voicecard](https://github.com/HinTak/seeed-voicecard) as a tarball and installs it unchanged: the whole source tree to `/usr/src/seeed-voicecard-<version>`, the prebuilt overlays to `/boot/firmware/overlays` and the card configuration to `/etc/voicecard`. No source is stored in this repository, building needs network access, and the branch is not pinned to a commit. The branch matches the kernel 6.12 of Raspberry Pi OS Trixie. The image downloads the branch for each kernel version it finds while it is built. The package follows one branch: if Raspberry Pi OS moves to another kernel, change `SEEED_BRANCH` in `debian/rules`.
-
-The package depends on `linux-headers-rpi-v8`, as the image does, which covers the 64-bit kernel of the Raspberry Pi 3, 4 and Zero 2. DKMS builds the modules in the `postinst`, so the headers of the running kernel have to be installed.
+The package ships no files. The overlay is part of the firmware of Raspberry Pi OS. `alsaname=seeed-2mic-voicecard` is the name of the card in the overlay of Seeed, so after a reboot the card appears as `seeed2micvoicec` as before. The package does not set the volume of the card and does not load an ALSA state. It was not tested on hardware.
 
 ## One driver per system
 
-All `picompose-driver-*` packages provide `picompose-audio-driver` and conflict with it. Installing one removes another, because a system has one audio device and all of them install `configure_audio.sh` and `configure_audio.service`.
+All `picompose-driver-*` packages provide `picompose-audio-driver` and conflict with it. Installing one removes another, because a system has one audio device.
 
 ## Versioning and changelog
 

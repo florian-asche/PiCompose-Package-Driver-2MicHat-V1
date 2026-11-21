@@ -4,12 +4,6 @@ Source: https://github.com/florian-asche/PiCompose-Package-Driver-2MicHat-V1
 
 Files: *
 Copyright: 2025-2026 Florian Asche
-Comment: The package contains the kernel module sources, device tree overlays and
- card configuration of https://github.com/HinTak/seeed-voicecard (Seeed Technology),
- which are downloaded while the package is built. They are not part of this
- repository and keep their own licenses, see /usr/src/seeed-voicecard-*/LICENSE
- and the headers of the files in the package. The script seeed-voicecard-v2 carries
- its own MIT License text.
 License: MIT
  Permission is hereby granted, free of charge, to any person obtaining a
  copy of this software and associated documentation files (the "Software"),

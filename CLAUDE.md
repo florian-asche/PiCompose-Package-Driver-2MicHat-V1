@@ -1,17 +1,16 @@
 # AI working guide for PiCompose-Package-Driver-2MicHat-V1
 
-Package `picompose-driver-2michat-v1` for the [PiCompose APT repository](https://github.com/florian-asche/PiCompose-Repository). It is the stage `02-stage-audiodriver-2michat-v1` of the [PiCompose](https://github.com/florian-asche/PiCompose) image as a Debian package. Read `README.md` for what the package contains. When this file and the code disagree, the code wins, fix this file in the same change.
+Package `picompose-driver-2michat-v1` for the [PiCompose APT repository](https://github.com/florian-asche/PiCompose-Repository). It replaces the stage `02-stage-audiodriver-2michat-v1` of the [PiCompose](https://github.com/florian-asche/PiCompose) image, which built the Seeed DKMS driver. The package uses the overlay `wm8960-soundcard` of the Raspberry Pi kernel instead and supports the 2-Mics HAT only. Read `README.md` for what the package contains. When this file and the code disagree, the code wins, fix this file in the same change.
 
 ## Rules
 
 - **PiCompose and linux-voice-assistant are read only.** Never change anything in the PiCompose repository or in the linux-voice-assistant repository, not locally and not on GitHub. They are references for what the image does and what the voice assistant needs.
 - Nothing is posted to GitHub (pull requests, discussions, comments) and nothing is pushed without the explicit consent of the developer. A human reviews every change, see `.github/AI_POLICY.md`.
-- Documentation, code comments, commit and PR text are in English, whatever language the conversation is in. The one exception is `diff.md`, which is in German on the developer's request.
-- **`diff.md` documents every deviation from how the PiCompose stage did it.** Keep it up to date: when a change creates, changes or removes a deviation (a file that differs, something that is not in the package, something done another way, an added dependency), update `diff.md` in the same change, and compare against the current `main` of PiCompose.
+- Documentation, code comments, commit and PR text are in English, whatever language the conversation is in.
 - **Open points live in `todo.md`.** Read it before you start. When the developer postpones something ("we do that later") or you find something you cannot settle in this change, add an entry there, and remove the entry in the change that settles it.
 - Do not edit `debian/changelog`. The workflows write it: every pull request needs exactly one of the labels `major`, `minor` and `patch` (tick one box under "Version bump" in the pull request description), and the version follows from it when the pull request is merged.
-- The packages never download anything while they are installed. Where the PiCompose stage downloaded sources while it built the image, the package build downloads the same (see `diff.md` and `debian/rules`), and no third-party sources are stored in this repository.
-- Maintainer scripts must be idempotent, run without prompts, and not fail when the hardware is missing. Units are installed to `/usr/lib/systemd/system` and enabled with `dh_installsystemd`, without `systemctl` calls. Defaults for user-owned locations are shipped below `/usr/share` and copied by `postinst` only if missing.
+- The packages never download anything while they are installed. No third-party sources are stored in this repository.
+- Maintainer scripts must be idempotent, run without prompts, and not fail when the hardware is missing. Units, if the package ships any, are installed to `/usr/lib/systemd/system` and enabled with `dh_installsystemd`, without `systemctl` calls. Defaults for user-owned locations are shipped below `/usr/share` and copied by `postinst` only if missing.
 - Hardware behavior (audio, boot configuration, kernel modules, I2C) cannot be tested here. Say that it was not tested on hardware, never claim it was.
 
 ## Commands
@@ -34,10 +33,9 @@ The package has to work on the Raspberry Pi OS that the PiCompose images are bui
    - The Debian release: do all packages in `Depends`, `Recommends` and `Build-Depends` exist in that release and in the Raspberry Pi archive (`archive.raspberrypi.com/debian`)? Check with `apt-cache policy` in a container of that release.
    - The kernel and firmware layout of Raspberry Pi OS for that release (kernel version, `/boot/firmware`, `config.txt`, `usercfg.txt`).
    - The architectures: the images are built for arm64, check whether armhf is still needed.
-   - Defaults of the base system that the package relies on: the user `pi` with the UID 1000, systemd, PipeWire and WirePlumber, `cron`.
+   - Defaults of the base system that the package relies on: the user `pi` with the UID 1000, systemd, PipeWire, `cron`.
    Specific to this package:
-   - The kernel version of the release. `debian/rules` downloads one branch of HinTak/seeed-voicecard (`SEEED_BRANCH`, today `v6.12`), which has to match the kernel of Raspberry Pi OS. Check that the module still builds against that kernel.
-   - The names of the kernel header packages (`linux-headers-rpi-v8`, and `linux-headers-rpi-2712` for the Raspberry Pi 5) and which of them the images need.
-   - The boot configuration: `/boot/firmware/config.txt`, `usercfg.txt` and the overlay directory `/boot/firmware/overlays`.
-   - PipeWire and WirePlumber, which the detection service and the volume service use (`pw-cli`, `wpctl`).
+   - The kernel of the release still has the driver `snd-soc-wm8960`, and the firmware of the release still ships the overlay `wm8960-soundcard` with the parameter `alsaname` (`dtoverlay -h wm8960-soundcard`, or the `README` in the overlay directory). The package does not build or ship either of them.
+   - The boot configuration: `/boot/firmware/config.txt`, `usercfg.txt`. The package ships no files below `/boot` (`/boot/firmware` is a FAT partition, dpkg cannot replace files there).
+   - The card name: the overlay line sets `alsaname=seeed-2mic-voicecard`, so the card keeps the ALSA id `seeed2micvoicec` that PiCompose and LVA configuration refer to.
 3. **Write down the verdict**: which release, kernel and image definition you looked at, what you checked and how (commands), what you could not check (hardware), and what has to change if the base moves, for example to a new Debian release. If a change makes the package fit only a newer or only an older base than the images use, say so and ask the developer before going on.
