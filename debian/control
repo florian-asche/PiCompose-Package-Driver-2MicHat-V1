@@ -21,7 +21,8 @@ Description: PiCompose driver for the ReSpeaker 2-Mics Pi HAT (version 1)
  WM8960 codec. The kernel already has the driver for the codec, so the
  package only needs the overlay of Seeed that connects it to the I2S pins of
  the Raspberry Pi. It enables I2C and SPI (for the LEDs of the HAT) and loads
- the overlay in the boot configuration.
+ the overlay in the boot configuration, and adds a profile set for the sound
+ card so that the volume of the sink controls the outputs of the codec.
  .
  The package provides picompose-audio-driver, so only one audio driver package
  can be installed.
